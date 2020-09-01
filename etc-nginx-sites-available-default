@@ -1,0 +1,44 @@
+server{
+       server_name www.knowledgepitara.com;
+      return 302 http://knowledgepitara.com$request_uri;
+}
+server{
+       server_name knowledgepitara.com;
+       root /home/ubuntu/kp-application;
+
+        location /api {
+        rewrite /api/(.*) /$1 break;
+        proxy_pass http://battuta.medunes.net;
+        }
+
+       location / {
+         try_files $uri $uri/ /index.html;
+         #return 301 http://knowledgepitara.com$request_uri;
+        # This will allow you to refresh page in your angular app.
+         # Which will not give error 404.
+        }
+
+        location /kp-admin/ {
+        try_files $uri $uri/ /index.html
+        return 301 http://$server_name/kp-admin$request_uri;
+        }
+        client_max_body_size 50M;
+}
+
+server {
+  server_name api.knowledgepitara.com;
+  client_max_body_size 50M;
+  location / {
+    include proxy_params;
+    proxy_pass http://localhost:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+    proxy_set_header X-Real-IP $remote_addr;
+   proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_headers_hash_max_size 512;
+     proxy_headers_hash_bucket_size 128;
+ }
+}
